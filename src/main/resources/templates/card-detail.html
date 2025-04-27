@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>卡片详情 - YumoMemo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .card-detail {
+            max-width: 800px;
+            margin: 2rem auto;
+        }
+        .stats-card {
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+        .stat-label {
+            color: #6c757d;
+        }
+        .stat-value {
+            font-weight: 500;
+        }
+        .difficulty-badge {
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container">
+        <div class="card-detail-container">
+            <!-- 返回首页按钮 -->
+            <button class="btn btn-outline-secondary mb-3" onclick="window.location.href='/home'">
+                <i class="bi bi-arrow-left"></i> 返回首页
+            </button>
+
+            <h2 class="section-title">卡片详情</h2>
+
+            <div class="card card-detail">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2 class="card-title mb-0">卡片详情</h2>
+                        <button class="btn btn-outline-primary" onclick="window.location.href='/cards'">
+                            <i class="fas fa-arrow-left me-2"></i>返回列表
+                        </button>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">正面内容</h5>
+                                    <p class="card-text" id="frontContent"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">背面内容</h5>
+                                    <p class="card-text" id="backContent"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="stats-card">
+                                <h5 class="mb-3">学习统计</h5>
+                                <div class="stat-item">
+                                    <span class="stat-label">难度等级</span>
+                                    <span class="stat-value" id="difficulty"></span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">记忆半衰期</span>
+                                    <span class="stat-value" id="halflife"></span>
+                                </div>
+<!--                                <div class="stat-item">-->
+<!--                                    <span class="stat-label">回忆概率</span>-->
+<!--                                    <span class="stat-value" id="pRecall"></span>-->
+<!--                                </div>-->
+                                <div class="stat-item">
+                                    <span class="stat-label">连续回忆成功次数</span>
+                                    <span class="stat-value" id="reps"></span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">遗忘次数</span>
+                                    <span class="stat-value" id="lapses"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="stats-card">
+                                <h5 class="mb-3">时间信息</h5>
+                                <div class="stat-item">
+                                    <span class="stat-label">创建时间</span>
+                                    <span class="stat-value" id="createdAt"></span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">最后复习</span>
+                                    <span class="stat-value" id="lastDate"></span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">下次复习</span>
+                                    <span class="stat-value" id="dueDate"></span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">更新时间</span>
+                                    <span class="stat-value" id="updatedAt"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button class="btn btn-primary me-2" onclick="editCard()">
+                            <i class="fas fa-edit me-2"></i>编辑卡片
+                        </button>
+                        <button class="btn btn-danger" onclick="deleteCard()">
+                            <i class="fas fa-trash me-2"></i>删除卡片
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 检查登录状态
+        function checkLoginStatus() {
+            const username = sessionStorage.getItem('username');
+            const userId = sessionStorage.getItem('userId');
+            
+            if (!username || !userId) {
+                const cookies = document.cookie.split(';');
+                const usernameCookie = cookies.find(cookie => cookie.trim().startsWith('username='));
+                const userIdCookie = cookies.find(cookie => cookie.trim().startsWith('userId='));
+                
+                if (!usernameCookie || !userIdCookie) {
+                    window.location.href = '/user/getLogin';
+                    return null;
+                }
+                
+                const username = usernameCookie.split('=')[1].trim();
+                const userId = userIdCookie.split('=')[1].trim();
+                sessionStorage.setItem('username', username);
+                sessionStorage.setItem('userId', userId);
+                return { username, userId };
+            }
+            
+            return { username, userId };
+        }
+
+        // 获取URL参数
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // 加载卡片详情
+        async function loadCardDetails() {
+            const cardId = getUrlParameter('cardId');
+            if (!cardId) {
+                alert('卡片ID无效');
+                window.location.href = '/cards';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/cards/detail?cardId=${cardId}`);
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    const card = result.data;
+                    // 显示基本信息
+                    document.getElementById('frontContent').textContent = card.front;
+                    document.getElementById('backContent').textContent = card.back;
+                    
+                    // 显示学习统计
+                    document.getElementById('difficulty').textContent = card.difficulty;
+                    document.getElementById('halflife').textContent = card.halflife.toFixed(1) + ' 天';
+                    // document.getElementById('pRecall').textContent = (card.pRecall * 100).toFixed(1) + '%';
+                    document.getElementById('reps').textContent = card.reps;
+                    document.getElementById('lapses').textContent = card.lapses;
+                    
+                    // 显示时间信息
+                    document.getElementById('createdAt').textContent = new Date(card.createdAt).toLocaleString();
+                    document.getElementById('lastDate').textContent = new Date(card.lastDate).toLocaleString();
+                    document.getElementById('dueDate').textContent = new Date(card.dueDate).toLocaleString();
+                    document.getElementById('updatedAt').textContent = new Date(card.updatedAt).toLocaleString();
+                } else {
+                    alert('获取卡片详情失败：' + result.errMsg);
+                    window.location.href = '/cards';
+                }
+            } catch (error) {
+                console.error('加载卡片详情失败:', error);
+                alert('加载卡片详情失败，请稍后重试');
+                window.location.href = '/cards';
+            }
+        }
+
+        // 编辑卡片
+        function editCard() {
+            const cardId = getUrlParameter('cardId');
+            window.location.href = `/edit-card?cardId=${cardId}`;
+        }
+
+        // 删除卡片
+        async function deleteCard() {
+            if (!confirm('确定要删除这张卡片吗？')) {
+                return;
+            }
+
+            const cardId = getUrlParameter('cardId');
+            try {
+                const response = await fetch(`/api/cards/delete?cardId=${cardId}`);
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    alert('卡片删除成功！');
+                    window.location.href = '/cards';
+                } else {
+                    alert('删除失败：' + result.errMsg);
+                }
+            } catch (error) {
+                console.error('删除卡片失败:', error);
+                alert('删除卡片失败，请稍后重试');
+            }
+        }
+
+        // 页面加载时检查登录状态并加载卡片详情
+        document.addEventListener('DOMContentLoaded', () => {
+            checkLoginStatus();
+            loadCardDetails();
+        });
+    </script>
+</body>
+</html> 

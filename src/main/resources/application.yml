@@ -1,0 +1,30 @@
+spring:
+  profiles:
+    active: @build.profile.id@
+  mvc:
+    static-path-pattern: classpath:/static/**
+
+  web:
+    resources:
+      static-locations:
+  spring:
+    thymeleaf:
+      encoding: UTF-8
+      content-type: text/html;charset=UTF-8
+    web:
+      encoding:
+        charset: UTF-8
+        force: true
+
+
+
+
+
+# 应用服务 WEB 访问端口
+mybatis-plus:
+  mapper-locations: classpath:/mapper/*.xml
+
+server:
+  port: 8081
+  address: 0.0.0.0
+

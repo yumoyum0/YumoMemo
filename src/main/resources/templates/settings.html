@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设置 - YumoMemo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .settings-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .section-title {
+            color: #495057;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .form-label {
+            font-weight: 500;
+            color: #495057;
+        }
+        .btn-back {
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="settings-container">
+            <button class="btn btn-outline-secondary btn-back" onclick="window.location.href='/home'">
+                <i class="bi bi-arrow-left"></i> 返回首页
+            </button>
+
+            <h2 class="section-title">个人信息</h2>
+            <div class="mb-4">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">用户名</label>
+                        <input type="text" class="form-control" id="username" readonly>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">用户ID</label>
+                        <input type="text" class="form-control" id="userId" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <h2 class="section-title">记忆算法设置</h2>
+            <div class="mb-4">
+                <div class="form-group">
+                    <label class="form-label">当前使用的记忆算法</label>
+                    <select class="form-select" id="algorithmSelect">
+                        <option value="SSP-MMC">SSP-MMC</option>
+                        <option value="THRESHOLD">Threshold</option>
+                        <option value="ANKI">Anki</option>
+                    </select>
+                </div>
+                <div class="mt-3">
+                    <button class="btn btn-primary" onclick="updateAlgorithm()">保存设置</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 检查登录状态
+        function checkLoginStatus() {
+            const username = getCookie('username');
+            const userId = getCookie('userId');
+            
+            if (!username || !userId) {
+                window.location.href = '/login';
+                return;
+            }
+            
+            document.getElementById('username').value = username;
+            document.getElementById('userId').value = userId;
+            
+            // 获取当前使用的算法
+            fetchCurrentAlgorithm();
+        }
+
+        // 获取当前使用的算法
+        function fetchCurrentAlgorithm() {
+            fetch('/user/algorithm?userId=' + getCookie('userId'))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('algorithmSelect').value = data.data;
+                    }
+                })
+                .catch(error => {
+                    console.error('获取算法设置失败:', error);
+                    showToast('获取算法设置失败', 'danger');
+                });
+        }
+
+        // 更新算法设置
+        function updateAlgorithm() {
+            const algorithm = document.getElementById('algorithmSelect').value;
+            const userId = getCookie('userId');
+            
+            fetch('/user/update?userId=' + getCookie('userId') + '&method=' + algorithm)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('算法设置已更新', 'success');
+                } else {
+                    showToast(data.errMsg || '更新失败', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('更新算法设置失败:', error);
+                showToast('更新算法设置失败', 'danger');
+            });
+        }
+
+        // 获取Cookie
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+
+        // 显示提示消息
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${type} border-0 position-fixed top-0 end-0 m-3`;
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+            
+            document.body.appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+            
+            toast.addEventListener('hidden.bs.toast', () => {
+                document.body.removeChild(toast);
+            });
+        }
+
+        // 页面加载时检查登录状态
+        document.addEventListener('DOMContentLoaded', checkLoginStatus);
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

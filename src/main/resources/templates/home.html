@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>首页 - YumoMemo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .welcome-card {
+            background: white;
+            color: black;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .feature-card {
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        .stats-card {
+            background-color: #f8f9fa;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .review-btn {
+            background: #51B59E;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            font-size: 1.2rem;
+            transition: transform 0.3s;
+        }
+        .review-btn:hover {
+            transform: scale(1.05);
+            color: white;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.875rem;
+        }
+        .recent-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .difficulty-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .difficulty-easy {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .difficulty-medium {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        .difficulty-hard {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container py-4">
+        <!-- 欢迎卡片 -->
+        <div class="welcome-card">
+            <h2 class="display-4">欢迎回来，<span id="username"></span>！</h2>
+            <p class="lead">今天也要坚持学习哦！</p>
+            <button class="btn review-btn" onclick="startReview()">
+                <i class="fas fa-sync me-2"></i>开始复习
+            </button>
+        </div>
+
+        <!-- 功能卡片 -->
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card feature-card">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-book me-2"></i>我的卡片</h5>
+                        <p class="card-text">管理你的学习卡片，创建、编辑和删除。</p>
+                        <a href="/cards" class="btn btn-outline-primary">查看卡片</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-plus-circle me-2"></i>创建卡片</h5>
+                        <p class="card-text">添加新的学习内容，丰富你的知识库。</p>
+                        <a href="/create-card" class="btn btn-outline-primary">创建卡片</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-cog me-2"></i>设置</h5>
+                        <p class="card-text">个性化你的学习体验，调整系统设置。</p>
+                        <a href="/settings" class="btn btn-outline-primary">设置</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- 最近复习 -->
+        <div class="bg-white rounded-3 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="mb-0">最近复习</h4>
+                <a href="javascript:void(0)" onclick="navigateToCards()" class="text-primary text-decoration-none">查看全部</a>
+            </div>
+            <div id="recentReviews">
+                <!-- 最近复习的卡片将通过JavaScript动态加载 -->
+            </div>
+        </div>
+    </div>
+
+<!--    &lt;!&ndash; 引入导航栏组件 &ndash;&gt;-->
+<!--    <div th:include="templates/tab-bar :: tab-bar"></div>-->
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 检查登录状态
+        function checkLoginStatus() {
+            const username = sessionStorage.getItem('username');
+            const userId = sessionStorage.getItem('userId');
+            
+            if (!username || !userId) {
+                const cookies = document.cookie.split(';');
+                const usernameCookie = cookies.find(cookie => cookie.trim().startsWith('username='));
+                const userIdCookie = cookies.find(cookie => cookie.trim().startsWith('userId='));
+                
+                if (!usernameCookie || !userIdCookie) {
+                    window.location.href = '/user/getLogin';
+                    return null;
+                }
+                
+                const username = usernameCookie.split('=')[1].trim();
+                const userId = userIdCookie.split('=')[1].trim();
+                sessionStorage.setItem('username', username);
+                sessionStorage.setItem('userId', userId);
+                return { username, userId };
+            }
+            
+            return { username, userId };
+        }
+
+        // 加载今日统计
+        async function loadTodayStats() {
+            const user = checkLoginStatus();
+            if (!user) return;
+
+            try {
+                const response = await fetch(`/api/cards/review/schedule?userId=${user.userId}`);
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    const schedule = result.data;
+                    document.getElementById('dueCardsCount').textContent = schedule.length;
+                } else {
+                    console.error('获取复习计划失败:', result.errMsg);
+                }
+            } catch (error) {
+                console.error('加载今日统计失败:', error);
+            }
+        }
+
+        // 开始复习
+        function startReview() {
+            window.location.href = '/review';
+        }
+
+        // 获取最近复习的卡片
+        async function fetchRecentReviews() {
+            try {
+                const userInfo = checkLoginStatus();
+                if (!userInfo) return;
+                
+                const response = await fetch(`/api/cards/getAllCards?userId=${userInfo.userId}`);
+                const result = await response.json();
+                if (result.code === 200) {
+                    const cards = result.data;
+                    const recentReviewsContainer = document.getElementById('recentReviews');
+                    recentReviewsContainer.innerHTML = '';
+
+                    // 按最后复习时间排序
+                    const sortedCards = cards.sort((a, b) => 
+                        new Date(b.lastDate) - new Date(a.lastDate)
+                    );
+
+                    // 只显示最近的两张卡片
+                    sortedCards.slice(0, 2).forEach(card => {
+                        const cardElement = document.createElement('div');
+                        cardElement.className = 'recent-card';
+                        cardElement.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">${card.front}</h6>
+                                    <small class="text-muted">${formatDate(card.lastDate)}</small>
+                                </div>
+                                <span class="difficulty-badge ${getDifficultyClass(card.difficulty)}">
+                                    ${getDifficultyText(card.difficulty)}
+                                </span>
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    半衰期: ${card.halflife.toFixed(1)}天
+                                </small>
+                            </div>
+                        `;
+                        recentReviewsContainer.appendChild(cardElement);
+                    });
+                }
+            } catch (error) {
+                console.error('获取最近复习记录失败:', error);
+            }
+        }
+
+        // 格式化日期
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 0) return '今天';
+            if (diffDays === 1) return '昨天';
+            return `${diffDays}天前`;
+        }
+
+        // 获取难度对应的样式类
+        function getDifficultyClass(difficulty) {
+            if (difficulty <= 6) return 'difficulty-easy';
+            if (difficulty <= 12) return 'difficulty-medium';
+            return 'difficulty-hard';
+        }
+
+        // 获取难度对应的文本
+        function getDifficultyText(difficulty) {
+            if (difficulty <= 6) return '简单';
+            if (difficulty <= 12) return '中等';
+            return '困难';
+        }
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = checkLoginStatus();
+            if (user) {
+                document.getElementById('username').textContent = user.username;
+                loadTodayStats();
+                fetchRecentReviews();
+            }
+        });
+    </script>
+</body>
+</html> 

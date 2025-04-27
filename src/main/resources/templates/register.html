@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册 - YumoMemo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .register-container {
+            max-width: 400px;
+            margin: 100px auto;
+        }
+        .register-card {
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .register-header {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            color: white;
+            border-radius: 10px 10px 0 0;
+        }
+        .form-control:focus {
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            border: none;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+        }
+        .password-requirements {
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+        .requirement {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.25rem;
+        }
+        .requirement i {
+            margin-right: 0.5rem;
+            font-size: 0.75rem;
+        }
+        .requirement.valid {
+            color: #198754;
+        }
+        .requirement.invalid {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container">
+        <div class="register-container">
+
+            <div class="card register-card">
+                <div class="card-header register-header text-center py-4">
+                    <h3 class="mb-0">YumoMemo</h3>
+                    <p class="mb-0">智能记忆卡片</p>
+                </div>
+                <div class="card-body p-4">
+                    <!-- 错误提示 -->
+                    <div class="alert alert-danger" role="alert" th:if="${code == '500'}" th:text="${errMsg}">
+                        注册失败！
+                    </div>
+                    <!-- 成功提示 -->
+                    <div class="alert alert-success" role="alert" th:if="${code == '200'}" th:text="${errMsg}">
+                        注册成功！
+                    </div>
+
+                    <form th:action="@{/user/register}" method="post" id="registerForm">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">用户名</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">密码</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                            <div class="password-requirements">
+                                <div class="requirement" id="length">
+                                    <i class="fas fa-times"></i>
+                                    <span>密码长度在6-32位之间</span>
+                                </div>
+                                <div class="requirement" id="chars">
+                                    <i class="fas fa-times"></i>
+                                    <span>包含字母、数字或特殊字符（!@#$%^&*()_=+）</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label">确认密码</label>
+                            <input type="password" class="form-control" id="confirmPassword" required>
+                            <div class="password-requirements">
+                                <div class="requirement" id="match">
+                                    <i class="fas fa-times"></i>
+                                    <span>两次输入的密码必须相同</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
+                                <i class="fas fa-user-plus"></i> 注册
+                            </button>
+                        </div>
+                    </form>
+                    <div class="text-center mt-3">
+                        <a href="/user/getLogin" class="text-decoration-none">已有账号？立即登录</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirmPassword');
+        const submitBtn = document.getElementById('submitBtn');
+        const requirements = {
+            length: document.getElementById('length'),
+            chars: document.getElementById('chars'),
+            match: document.getElementById('match')
+        };
+
+        function validatePassword() {
+            const value = password.value;
+            const confirmValue = confirmPassword.value;
+
+            // 验证密码长度
+            const lengthValid = value.length >= 6 && value.length <= 32;
+            requirements.length.classList.toggle('valid', lengthValid);
+            requirements.length.classList.toggle('invalid', !lengthValid);
+            requirements.length.querySelector('i').className = lengthValid ? 'fas fa-check' : 'fas fa-times';
+
+            // 验证密码字符
+            const charsValid = /^[a-zA-Z0-9!@#$%^&*()_=+]+$/.test(value);
+            requirements.chars.classList.toggle('valid', charsValid);
+            requirements.chars.classList.toggle('invalid', !charsValid);
+            requirements.chars.querySelector('i').className = charsValid ? 'fas fa-check' : 'fas fa-times';
+
+            // 验证密码匹配
+            const matchValid = value === confirmValue && value !== '';
+            requirements.match.classList.toggle('valid', matchValid);
+            requirements.match.classList.toggle('invalid', !matchValid);
+            requirements.match.querySelector('i').className = matchValid ? 'fas fa-check' : 'fas fa-times';
+
+            // 启用/禁用提交按钮
+            submitBtn.disabled = !(lengthValid && charsValid && matchValid);
+        }
+
+        password.addEventListener('input', validatePassword);
+        confirmPassword.addEventListener('input', validatePassword);
+    </script>
+</body>
+</html> 

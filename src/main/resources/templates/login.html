@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - YumoMemo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+        }
+        .login-card {
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .login-header {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            color: white;
+            border-radius: 10px 10px 0 0;
+        }
+        .form-control:focus {
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            border: none;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+        }
+        .alert {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container">
+        <div class="login-container">
+
+            <div class="card login-card">
+                <div class="card-header login-header text-center py-4">
+                    <h3 class="mb-0">YumoMemo</h3>
+                    <p class="mb-0">智能记忆卡片</p>
+                </div>
+                <div class="card-body p-4">
+                    <!-- 错误提示 -->
+
+
+                    <form th:action="@{/user/login}" method="post">
+                        <div class="errMsg" th:if="${errMsg}" style="color: red"><span th:text="${errMsg}"></span></div>
+                        <div class="mb-3">
+                            <label for="name" class="form-label">用户名</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">密码</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt"></i> 登录
+                            </button>
+                        </div>
+                    </form>
+                    <div class="text-center mt-3">
+                        <a href="/user/getRegister" class="text-decoration-none">还没有账号？立即注册</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

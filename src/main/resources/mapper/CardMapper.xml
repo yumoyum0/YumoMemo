@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="top.yumoyumo.mapper.CardMapper">
+    <!-- 查询用户的所有卡片 -->
+    <select id="selectByUserId" resultType="top.yumoyumo.entity.Card">
+        SELECT * FROM card WHERE user_id = #{userId}
+    </select>
+
+    <!-- 查询即将到期需要复习的卡片 -->
+    <select id="selectDueCards" resultType="top.yumoyumo.entity.Card">
+        SELECT * FROM card
+        WHERE user_id = #{userId}
+        AND due_date &lt;= #{now}
+        ORDER BY due_date ASC
+    </select>
+</mapper>
